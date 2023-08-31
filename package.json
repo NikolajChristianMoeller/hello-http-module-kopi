@@ -1,0 +1,11 @@
+{
+  "name": "hello-http-module",
+  "version": "1.0.0",
+  "description": "",
+  "app.js": "index.js",
+  "type": "module",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
