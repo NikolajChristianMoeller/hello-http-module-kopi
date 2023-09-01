@@ -1,31 +1,37 @@
-import http from "node:http";
-import { users } from "./app2.js";
+import express from "express";
 import fs from "fs/promises";
 
-const app = http.createServer(async (request, response) => {
-  if (request.url === "/" && request.method === "GET") {
-    // Sæt statuskode og overskrift for responsen
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "text/plain");
-    // Send besked som response
-    response.end("Working with HTTP Module and routing");
-  } else if (request.url === "/users" && request.method === "GET") {
-    // Sæt statuskode og overskrift for responsen
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "application/json");
+const app = express();
+const port = 3000;
+
+app.use(express.json()); // JSON middleware
+
+app.get("/", (req, res) => {
+  res.status(200).send("Working with Express and routing");
+});
+
+app.get("/users", async (req, res) => {
+  try {
     const json = await fs.readFile("data/users.json");
-    // JSON som response
-    // response.end(JSON.stringify(users));
-    response.end(json);
-  } else if (request.url === "/posts" && request.method === "GET") {
-    // Sæt statuskode og overskrift for responsen
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "application/json");
+    res.status(200).json(JSON.parse(json));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/posts", async (req, res) => {
+  try {
     const json = await fs.readFile("data/posts.json");
-    // JSON som response
-    //   response.end(JSON.stringify(users));
-    response.end(json);
-  } else if (request.url === "/users" && request.method === "POST") {
+    res.status(200).json(JSON.parse(json));
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/users", async (req, res) => {
+  try {
     const user = {
       id: new Date().getTime(),
       image: "url",
@@ -33,29 +39,86 @@ const app = http.createServer(async (request, response) => {
       name: "Tester User",
       title: "Senior Tester",
     };
-    // Læs fra JSON
+
     const json = await fs.readFile("data/users.json");
-    console.log(json);
-    // Parse til JavaScript
     const users = JSON.parse(json);
-    console.log(users);
-    // Tilføj "user" til "users"
     users.push(user);
-    // Konverter users til JSON igen
+
     const usersJSON = JSON.stringify(users);
-    // Skriv til JSON-fil
     await fs.writeFile("data/users.json", usersJSON);
-    // Sæt statuskode og header
-    response.statusCode = 200;
-    response.setHeader("Content-Type", "application/json");
-    // Send users
-    response.end(usersJSON);
+
+    res.status(200).json(usersJSON);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
-//console.log(users);
+app.post("/posts", async (req, res) => {
+  try {
+    const post = {
+      caption: "Big ass mountains",
+      createdAt: "123456789",
+      image: "Billede",
+      uid: "32"
+    };
 
-const port = 3000;
+    const json = await fs.readFile("data/posts.json");
+    const posts = JSON.parse(json);
+    posts.push(post);
+
+    const postsJSON = JSON.stringify(posts);
+    await fs.writeFile("data/posts.json", postsJSON);
+
+    res.status(200).json(postsJSON);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/users/:id", (req, res) => {
+  const id = Number(req.params.id);
+  console.log(id);
+  const user = users.find(t => t.id === id);
+  res.json(user);
+});
+
+app.get("/posts/:id", (req, res) => {
+  const id = Number(req.params.id);
+  console.log(id);
+  const post = posts.find(t => t.id === id);
+  res.json(post);
+});
+
+app.put("/users/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const user = users.find(t => t.id === id);
+  console.log(id);
+  console.log(req.body);
+  users.splice(users.indexOf(user), 1);
+  users.push(req.body);
+  res.json(users);
+});
+
+app.put("/posts/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const post = posts.find(t => t.id === id);
+  console.log(id);
+  console.log(req.body);
+  posts.splice(posts.indexOf(post), 1);
+  posts.push(req.body);
+  res.json(posts);
+});
+
+app.delete("/users/:id", (req, res) => {
+  res.send("Got a DELETE request at /users");
+});
+
+app.delete("/posts/:id", (req, res) => {
+  res.send("Got a DELETE request at /posts");
+});
+
 app.listen(port, () => {
-  console.log(`Serveren kører på http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
